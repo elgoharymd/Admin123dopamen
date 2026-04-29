@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>لوحة إدارة دوبامين - </title>
+    <title>لوحة إدارة دوبامين - نظام التصنيفات</title>
     
     <!-- TailwindCSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -108,6 +108,7 @@
             align-items: center;
             transition: 0.2s;
             border: 1px solid #e2e8f0;
+            flex-wrap: wrap;
         }
         
         .list-item:hover {
@@ -132,6 +133,21 @@
             color: #475569;
             margin-left: 10px;
             white-space: nowrap;
+        }
+        
+        .item-categories {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-right: 10px;
+        }
+        
+        .item-cat-badge {
+            background: #2563eb20;
+            color: #2563eb;
+            padding: 2px 6px;
+            border-radius: 20px;
+            font-size: 9px;
         }
         
         .edit-btn {
@@ -187,9 +203,7 @@
             color: #64748b;
         }
         
-        button {
-            cursor: pointer;
-        }
+        button { cursor: pointer; }
         
         .json-editor {
             font-family: monospace;
@@ -206,6 +220,54 @@
             border-radius: 20px;
             margin-top: 5px;
         }
+        
+        .categories-checkbox-group {
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #e2e8f0;
+            max-height: 120px;
+            overflow-y: auto;
+        }
+        
+        .category-checkbox {
+            display: inline-flex;
+            align-items: center;
+            margin-left: 15px;
+            margin-bottom: 8px;
+            background: white;
+            padding: 4px 12px;
+            border-radius: 30px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .category-checkbox input {
+            margin-left: 6px;
+        }
+        
+        .category-management {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+        }
+        
+        .category-chip {
+            background: #e2e8f0;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin: 3px;
+        }
+        
+        .category-chip .delete-cat {
+            cursor: pointer;
+            color: #ef4444;
+            font-size: 10px;
+        }
+        
+        .category-chip .delete-cat:hover { color: #dc2626; }
     </style>
 </head>
 <body>
@@ -215,7 +277,7 @@
     <div class="admin-header flex justify-between items-center mb-6 flex-wrap">
         <div class="flex items-center gap-3">
             <i class="fas fa-brain text-2xl"></i>
-            <h1 class="text-xl md:text-2xl font-bold">لوحة إدارة دوبامين <span class="text-xs bg-white/20 px-2 py-1 rounded-full">المظور elgoharyX</span></h1>
+            <h1 class="text-xl md:text-2xl font-bold">لوحة إدارة دوبامين <span class="text-xs bg-white/20 px-2 py-1 rounded-full">نظام التصنيفات</span></h1>
         </div>
         <div class="flex gap-2 mt-2 sm:mt-0">
             <button onclick="exportAllData()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm flex items-center gap-2"><i class="fas fa-download"></i> تصدير البيانات</button>
@@ -235,9 +297,34 @@
         <button onclick="showSection('quiz')" class="admin-tab" id="tabQuizBtn"><i class="fas fa-clipboard-list ml-1"></i> أسئلة الاختبار</button>
         <button onclick="showSection('texts')" class="admin-tab" id="tabTextsBtn"><i class="fas fa-globe ml-1"></i> نصوص الموقع</button>
         <button onclick="showSection('results')" class="admin-tab" id="tabResultsBtn"><i class="fas fa-chart-line ml-1"></i> نتائج المستخدمين</button>
+        <button onclick="showSection('categories')" class="admin-tab" id="tabCategoriesBtn"><i class="fas fa-tags ml-1"></i> التصنيفات</button>
     </div>
     
-    <!-- ========================= REPORTS SECTION ========================= -->
+    <!-- ========================= CATEGORIES MANAGEMENT SECTION (NEW) ========================= -->
+    <div id="categoriesSection" class="admin-card mb-8 hidden">
+        <div class="bg-gradient-to-r from-purple-600 to-purple-800 px-6 py-3 text-white font-bold text-lg"><i class="fas fa-tags ml-2"></i> إدارة التصنيفات</div>
+        <div class="p-5">
+            <div class="grid md:grid-cols-2 gap-5">
+                <div>
+                    <h3 class="font-bold mb-3">➕ إضافة تصنيف جديد</h3>
+                    <input type="text" id="newCatId" placeholder="معرف التصنيف (مثال: science)" class="form-input mb-3">
+                    <input type="text" id="newCatName" placeholder="اسم التصنيف (مثال: علوم عصبية)" class="form-input mb-3">
+                    <input type="color" id="newCatColor" value="#2563eb" class="form-input mb-3" style="height: 45px;">
+                    <button onclick="addNewCategory()" class="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2 rounded-xl w-full font-bold"><i class="fas fa-plus ml-1"></i> إضافة التصنيف</button>
+                </div>
+                <div>
+                    <h3 class="font-bold mb-3">📋 قائمة التصنيفات الحالية <span id="categoriesCount" class="badge-count">0</span></h3>
+                    <div id="categoriesList" class="item-list" style="max-height: 300px;"></div>
+                </div>
+            </div>
+            <div class="mt-4 p-3 bg-blue-50 rounded-xl text-sm text-gray-600">
+                <i class="fas fa-info-circle ml-1 text-blue-500"></i> 
+                التصنيفات تظهر تلقائياً في الموقع الرئيسي ويمكن فلترة المحتوى بواسطتها
+            </div>
+        </div>
+    </div>
+    
+    <!-- ========================= REPORTS SECTION (with categories) ========================= -->
     <div id="reportsSection" class="admin-card mb-8">
         <div class="bg-gradient-to-r from-blue-600 to-blue-800 px-6 py-3 text-white font-bold text-lg"><i class="fas fa-newspaper ml-2"></i> إدارة التقارير العلمية</div>
         <div class="p-5">
@@ -247,6 +334,13 @@
                     <input type="text" id="repImage" placeholder="رابط الصورة (URL)" class="form-input mb-3">
                     <textarea id="repSummary" placeholder="الملخص المختصر" rows="2" class="form-textarea mb-3"></textarea>
                     <textarea id="repContent" placeholder="المحتوى الكامل (نص تفصيلي)" rows="4" class="form-textarea mb-3"></textarea>
+                    
+                    <!-- Categories Checkboxes -->
+                    <div class="mb-3">
+                        <label class="font-bold text-sm block mb-2"><i class="fas fa-tags ml-1"></i> التصنيفات:</label>
+                        <div id="repCategoriesGroup" class="categories-checkbox-group"></div>
+                    </div>
+                    
                     <div class="auto-date-hint mb-3"><i class="fas fa-calendar-alt ml-1"></i> التاريخ يُضاف تلقائياً عند الحفظ</div>
                     <button onclick="saveItem('reports')" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-xl w-full font-bold"><i class="fas fa-save ml-1"></i> حفظ التقرير</button>
                 </div>
@@ -265,11 +359,17 @@
             <div class="grid md:grid-cols-2 gap-5">
                 <div>
                     <input type="text" id="artTitle" placeholder="العنوان *" class="form-input mb-3">
-                    <input type="text" id="artCategory" placeholder="التصنيف (مثل: علوم عصبية)" class="form-input mb-3">
                     <input type="text" id="artImage" placeholder="رابط الصورة" class="form-input mb-3">
                     <textarea id="artSummary" placeholder="الملخص" rows="2" class="form-textarea mb-3"></textarea>
                     <textarea id="artContent" placeholder="المحتوى الكامل" rows="4" class="form-textarea mb-3"></textarea>
                     <input type="number" id="artReadTime" placeholder="وقت القراءة (دقائق)" class="form-input mb-3">
+                    
+                    <!-- Categories Checkboxes -->
+                    <div class="mb-3">
+                        <label class="font-bold text-sm block mb-2"><i class="fas fa-tags ml-1"></i> التصنيفات:</label>
+                        <div id="artCategoriesGroup" class="categories-checkbox-group"></div>
+                    </div>
+                    
                     <div class="auto-date-hint mb-3"><i class="fas fa-calendar-alt ml-1"></i> التاريخ يُضاف تلقائياً عند الحفظ</div>
                     <button onclick="saveItem('articles')" class="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-xl w-full font-bold">حفظ المقال</button>
                 </div>
@@ -291,6 +391,12 @@
                     <input type="text" id="newsImage" placeholder="رابط الصورة" class="form-input mb-3">
                     <textarea id="newsSummary" placeholder="الملخص" rows="2" class="form-textarea mb-3"></textarea>
                     <textarea id="newsContent" placeholder="المحتوى" rows="4" class="form-textarea mb-3"></textarea>
+                    
+                    <div class="mb-3">
+                        <label class="font-bold text-sm block mb-2"><i class="fas fa-tags ml-1"></i> التصنيفات:</label>
+                        <div id="newsCategoriesGroup" class="categories-checkbox-group"></div>
+                    </div>
+                    
                     <div class="auto-date-hint mb-3"><i class="fas fa-calendar-alt ml-1"></i> التاريخ يُضاف تلقائياً عند الحفظ</div>
                     <button onclick="saveItem('news')" class="bg-yellow-600 hover:bg-yellow-700 text-white px-5 py-2 rounded-xl w-full font-bold">حفظ الخبر</button>
                 </div>
@@ -313,6 +419,12 @@
                     <input type="text" id="interImage" placeholder="رابط الصورة" class="form-input mb-3">
                     <textarea id="interSummary" placeholder="الملخص" rows="2" class="form-textarea mb-3"></textarea>
                     <textarea id="interContent" placeholder="المحتوى" rows="4" class="form-textarea mb-3"></textarea>
+                    
+                    <div class="mb-3">
+                        <label class="font-bold text-sm block mb-2"><i class="fas fa-tags ml-1"></i> التصنيفات:</label>
+                        <div id="interCategoriesGroup" class="categories-checkbox-group"></div>
+                    </div>
+                    
                     <div class="auto-date-hint mb-3"><i class="fas fa-calendar-alt ml-1"></i> التاريخ يُضاف تلقائياً عند الحفظ</div>
                     <button onclick="saveItem('interviews')" class="bg-pink-600 hover:bg-pink-700 text-white px-5 py-2 rounded-xl w-full font-bold">حفظ الحوار</button>
                 </div>
@@ -334,6 +446,12 @@
                     <input type="text" id="invImage" placeholder="رابط الصورة" class="form-input mb-3">
                     <textarea id="invSummary" placeholder="الوصف المختصر" rows="2" class="form-textarea mb-3"></textarea>
                     <textarea id="invContent" placeholder="المحتوى التفصيلي" rows="4" class="form-textarea mb-3"></textarea>
+                    
+                    <div class="mb-3">
+                        <label class="font-bold text-sm block mb-2"><i class="fas fa-tags ml-1"></i> التصنيفات:</label>
+                        <div id="invCategoriesGroup" class="categories-checkbox-group"></div>
+                    </div>
+                    
                     <div class="auto-date-hint mb-3"><i class="fas fa-calendar-alt ml-1"></i> التاريخ يُضاف تلقائياً عند الحفظ</div>
                     <button onclick="saveItem('investigations')" class="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2 rounded-xl w-full font-bold">حفظ التحقيق</button>
                 </div>
@@ -353,6 +471,12 @@
                 <div>
                     <input type="text" id="infTitle" placeholder="العنوان *" class="form-input mb-3">
                     <input type="text" id="infImage" placeholder="رابط الصورة (إنفوجرافيك)" class="form-input mb-3">
+                    
+                    <div class="mb-3">
+                        <label class="font-bold text-sm block mb-2"><i class="fas fa-tags ml-1"></i> التصنيفات:</label>
+                        <div id="infCategoriesGroup" class="categories-checkbox-group"></div>
+                    </div>
+                    
                     <div class="auto-date-hint mb-3"><i class="fas fa-calendar-alt ml-1"></i> التاريخ يُضاف تلقائياً عند الحفظ</div>
                     <button onclick="saveItem('infographics')" class="bg-orange-600 hover:bg-orange-700 text-white px-5 py-2 rounded-xl w-full font-bold">حفظ الإنفوجرافيك</button>
                 </div>
@@ -373,6 +497,12 @@
                     <input type="text" id="vidTitle" placeholder="العنوان *" class="form-input mb-3">
                     <input type="text" id="vidUrl" placeholder="رابط يوتيوب (youtube.com أو youtu.be)" class="form-input mb-3">
                     <textarea id="vidDesc" placeholder="وصف الفيديو" rows="2" class="form-textarea mb-3"></textarea>
+                    
+                    <div class="mb-3">
+                        <label class="font-bold text-sm block mb-2"><i class="fas fa-tags ml-1"></i> التصنيفات:</label>
+                        <div id="vidCategoriesGroup" class="categories-checkbox-group"></div>
+                    </div>
+                    
                     <div class="auto-date-hint mb-3"><i class="fas fa-calendar-alt ml-1"></i> التاريخ يُضاف تلقائياً عند الحفظ</div>
                     <button onclick="saveItem('videos')" class="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-xl w-full font-bold">حفظ الفيديو</button>
                 </div>
@@ -384,7 +514,7 @@
         </div>
     </div>
     
-    <!-- ========================= QUIZ QUESTIONS SECTION ========================= -->
+    <!-- ========================= QUIZ SECTION ========================= -->
     <div id="quizSection" class="admin-card mb-8 hidden">
         <div class="bg-gradient-to-r from-indigo-600 to-indigo-800 px-6 py-3 text-white font-bold text-lg"><i class="fas fa-clipboard-list ml-2"></i> أسئلة مقياس الدوبامين (JSON)</div>
         <div class="p-5">
@@ -449,6 +579,7 @@
     
     let currentEditId = null;
     let currentEditType = null;
+    let allCategories = [];
     
     // Helper: Get current date in Arabic format
     function getCurrentDate() {
@@ -465,8 +596,117 @@
         { text: "كم مرة تقضي ساعات في مشاهدة المقاطع القصيرة؟", options: ["دائمًا", "كثيرًا", "أحيانًا", "نادرًا"], scores: [4,3,2,1] }
     ];
     
+    // =============== CATEGORIES FUNCTIONS ===============
+    async function loadCategories() {
+        const snap = await db.ref('categories').once('value');
+        const data = snap.val();
+        if (data) {
+            allCategories = Object.values(data);
+        } else {
+            // Default categories
+            allCategories = [
+                { id: 'science', name: '🔬 علوم عصبية', color: '#2563eb' },
+                { id: 'health', name: '🧠 صحة نفسية', color: '#22c55e' },
+                { id: 'tech', name: '📱 تقنية', color: '#a855f7' },
+                { id: 'research', name: '📖 أبحاث', color: '#f59e0b' },
+                { id: 'addiction', name: '⚠️ إدمان', color: '#ef4444' }
+            ];
+            await db.ref('categories').set(allCategories.reduce((acc, cat) => ({...acc, [cat.id]: cat}), {}));
+        }
+        return allCategories;
+    }
+    
+    async function renderCategoriesCheckboxes(containerId, selectedCats = []) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        await loadCategories();
+        if (allCategories.length === 0) {
+            container.innerHTML = '<p class="text-gray-500 text-sm">لا توجد تصنيفات - أضف تصنيفات من علامة التبويب "التصنيفات"</p>';
+            return;
+        }
+        container.innerHTML = allCategories.map(cat => `
+            <label class="category-checkbox" style="border-right: 3px solid ${cat.color}">
+                <input type="checkbox" value="${cat.id}" ${selectedCats.includes(cat.id) ? 'checked' : ''}>
+                <span style="color: ${cat.color}">${cat.name}</span>
+            </label>
+        `).join('');
+    }
+    
+    function getSelectedCategories(containerId) {
+        const checkboxes = document.querySelectorAll(`#${containerId} input[type="checkbox"]:checked`);
+        return Array.from(checkboxes).map(cb => cb.value);
+    }
+    
+    async function renderCategoriesList() {
+        await loadCategories();
+        const container = document.getElementById('categoriesList');
+        const countSpan = document.getElementById('categoriesCount');
+        if (container) {
+            if (allCategories.length === 0) {
+                container.innerHTML = '<div class="empty-state-admin">لا توجد تصنيفات، أضف تصنيفاً جديداً</div>';
+                if(countSpan) countSpan.innerText = '0';
+                return;
+            }
+            if(countSpan) countSpan.innerText = allCategories.length;
+            container.innerHTML = allCategories.map(cat => `
+                <div class="category-chip" style="background: ${cat.color}20; border-right: 3px solid ${cat.color}">
+                    <span style="color: ${cat.color}">${cat.name}</span>
+                    <span class="delete-cat" onclick="deleteCategory('${cat.id}')"><i class="fas fa-times-circle"></i></span>
+                </div>
+            `).join('');
+        }
+    }
+    
+    async function addNewCategory() {
+        const id = document.getElementById('newCatId').value.trim();
+        const name = document.getElementById('newCatName').value.trim();
+        const color = document.getElementById('newCatColor').value;
+        
+        if (!id || !name) {
+            Swal.fire("خطأ", "الرجاء إدخال معرف واسم التصنيف", "error");
+            return;
+        }
+        
+        const newCat = { id, name, color };
+        await db.ref(`categories/${id}`).set(newCat);
+        document.getElementById('newCatId').value = '';
+        document.getElementById('newCatName').value = '';
+        await loadCategories();
+        await renderCategoriesList();
+        await refreshAllCategoriesGroups();
+        Swal.fire("✅ تم الإضافة", `تم إضافة التصنيف "${name}"`, "success");
+    }
+    
+    async function deleteCategory(catId) {
+        const result = await Swal.fire({
+            title: "⚠️ تأكيد الحذف",
+            text: "هل أنت متأكد من حذف هذا التصنيف؟",
+            icon: "warning",
+            showCancelButton: true
+        });
+        if (result.isConfirmed) {
+            await db.ref(`categories/${catId}`).remove();
+            await loadCategories();
+            await renderCategoriesList();
+            await refreshAllCategoriesGroups();
+            Swal.fire("✅ تم الحذف", "تم حذف التصنيف", "success");
+        }
+    }
+    
+    async function refreshAllCategoriesGroups() {
+        await loadCategories();
+        await renderCategoriesCheckboxes('repCategoriesGroup');
+        await renderCategoriesCheckboxes('artCategoriesGroup');
+        await renderCategoriesCheckboxes('newsCategoriesGroup');
+        await renderCategoriesCheckboxes('interCategoriesGroup');
+        await renderCategoriesCheckboxes('invCategoriesGroup');
+        await renderCategoriesCheckboxes('infCategoriesGroup');
+        await renderCategoriesCheckboxes('vidCategoriesGroup');
+    }
+    
+    // =============== MAIN FUNCTIONS ===============
     function showSection(section) {
-        const sections = ['reports','articles','news','interviews','investigations','infographics','videos','quiz','texts','results'];
+        const sections = ['reports','articles','news','interviews','investigations','infographics','videos','quiz','texts','results','categories'];
         sections.forEach(s => {
             const el = document.getElementById(s+'Section');
             if(el) el.classList.add('hidden');
@@ -479,7 +719,14 @@
         if(section === 'results') loadUserResults();
         else if(section === 'quiz') loadQuizToEditor();
         else if(section === 'texts') loadTextsToForm();
-        else loadListForSection(section);
+        else if(section === 'categories') {
+            renderCategoriesList();
+            loadCategories();
+        }
+        else {
+            loadListForSection(section);
+            refreshAllCategoriesGroups();
+        }
     }
     
     async function loadListForSection(type) {
@@ -497,12 +744,23 @@
         for(let [id, item] of Object.entries(data)) {
             const title = item.title || 'بدون عنوان';
             const date = item.date || '';
+            const categories = item.categories || [];
+            
+            // Get category names
+            const categoryNames = categories.map(catId => {
+                const cat = allCategories.find(c => c.id === catId);
+                return cat ? cat.name : catId;
+            });
+            
             const div = document.createElement('div');
             div.className = 'list-item';
             div.innerHTML = `
                 <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px; flex: 1;">
                     <span class="item-title">${escapeHtml(title)}</span>
                     ${date ? `<span class="item-date-badge"><i class="fas fa-calendar-alt ml-1"></i> ${escapeHtml(date)}</span>` : ''}
+                    <div class="item-categories">
+                        ${categoryNames.map(cat => `<span class="item-cat-badge">${escapeHtml(cat)}</span>`).join('')}
+                    </div>
                 </div>
                 <div>
                     <button class="edit-btn" onclick="editItem('${type}','${id}')"><i class="fas fa-edit ml-1"></i> تعديل</button>
@@ -515,7 +773,18 @@
     
     window.saveItem = async function(type) {
         const currentDate = getCurrentDate();
-        let itemData = { title: '', date: currentDate };
+        
+        // Get selected categories for this type
+        let selectedCategories = [];
+        if(type === 'reports') selectedCategories = getSelectedCategories('repCategoriesGroup');
+        else if(type === 'articles') selectedCategories = getSelectedCategories('artCategoriesGroup');
+        else if(type === 'news') selectedCategories = getSelectedCategories('newsCategoriesGroup');
+        else if(type === 'interviews') selectedCategories = getSelectedCategories('interCategoriesGroup');
+        else if(type === 'investigations') selectedCategories = getSelectedCategories('invCategoriesGroup');
+        else if(type === 'infographics') selectedCategories = getSelectedCategories('infCategoriesGroup');
+        else if(type === 'videos') selectedCategories = getSelectedCategories('vidCategoriesGroup');
+        
+        let itemData = { title: '', date: currentDate, categories: selectedCategories };
         
         if(type === 'reports') {
             itemData.title = document.getElementById('repTitle').value.trim();
@@ -533,7 +802,6 @@
         else if(type === 'articles') {
             itemData.title = document.getElementById('artTitle').value.trim();
             if(!itemData.title) return Swal.fire("خطأ", "العنوان مطلوب", "error");
-            itemData.category = document.getElementById('artCategory').value;
             itemData.image = document.getElementById('artImage').value;
             itemData.summary = document.getElementById('artSummary').value;
             itemData.content = document.getElementById('artContent').value;
@@ -609,7 +877,7 @@
             clearVidForm();
         }
         
-        Swal.fire("تم الحفظ", `تم ${currentEditId ? 'تعديل' : 'إضافة'} المحتوى بنجاح مع تاريخ تلقائي`, "success");
+        Swal.fire("تم الحفظ", `تم ${currentEditId ? 'تعديل' : 'إضافة'} المحتوى بنجاح مع التاريخ والتصنيفات`, "success");
         loadListForSection(type);
         currentEditId = null;
         currentEditType = null;
@@ -622,43 +890,51 @@
         currentEditId = id;
         currentEditType = type;
         
+        const selectedCats = item.categories || [];
+        
         if(type === 'reports') {
             document.getElementById('repTitle').value = item.title || '';
             document.getElementById('repImage').value = item.image || '';
             document.getElementById('repSummary').value = item.summary || '';
             document.getElementById('repContent').value = item.content || '';
+            await renderCategoriesCheckboxes('repCategoriesGroup', selectedCats);
         } else if(type === 'articles') {
             document.getElementById('artTitle').value = item.title || '';
-            document.getElementById('artCategory').value = item.category || '';
             document.getElementById('artImage').value = item.image || '';
             document.getElementById('artSummary').value = item.summary || '';
             document.getElementById('artContent').value = item.content || '';
             document.getElementById('artReadTime').value = item.readTime || '';
+            await renderCategoriesCheckboxes('artCategoriesGroup', selectedCats);
         } else if(type === 'news') {
             document.getElementById('newsTitle').value = item.title || '';
             document.getElementById('newsImage').value = item.image || '';
             document.getElementById('newsSummary').value = item.summary || '';
             document.getElementById('newsContent').value = item.content || '';
+            await renderCategoriesCheckboxes('newsCategoriesGroup', selectedCats);
         } else if(type === 'interviews') {
             document.getElementById('interTitle').value = item.title || '';
             document.getElementById('interSpeaker').value = item.speaker || '';
             document.getElementById('interImage').value = item.image || '';
             document.getElementById('interSummary').value = item.summary || '';
             document.getElementById('interContent').value = item.content || '';
+            await renderCategoriesCheckboxes('interCategoriesGroup', selectedCats);
         } else if(type === 'investigations') {
             document.getElementById('invTitle').value = item.title || '';
             document.getElementById('invImage').value = item.image || '';
             document.getElementById('invSummary').value = item.summary || '';
             document.getElementById('invContent').value = item.content || '';
+            await renderCategoriesCheckboxes('invCategoriesGroup', selectedCats);
         } else if(type === 'infographics') {
             document.getElementById('infTitle').value = item.title || '';
             document.getElementById('infImage').value = item.imageUrl || '';
+            await renderCategoriesCheckboxes('infCategoriesGroup', selectedCats);
         } else if(type === 'videos') {
             document.getElementById('vidTitle').value = item.title || '';
             document.getElementById('vidUrl').value = item.videoUrl || '';
             document.getElementById('vidDesc').value = item.description || '';
+            await renderCategoriesCheckboxes('vidCategoriesGroup', selectedCats);
         }
-        Swal.fire("وضع التعديل", "قم بتعديل البيانات ثم اضغط حفظ (سيتم تحديث التاريخ تلقائياً)", "info");
+        Swal.fire("وضع التعديل", "قم بتعديل البيانات ثم اضغط حفظ (سيتم تحديث التاريخ والتصنيفات)", "info");
     };
     
     window.deleteItem = async function(type, id) {
@@ -765,7 +1041,7 @@
     };
     
     window.exportAllData = async function() {
-        const refs = ['reports','articles','news','interviews','investigations','infographics','videos','quiz/questions','site_texts','quiz_results'];
+        const refs = ['reports','articles','news','interviews','investigations','infographics','videos','quiz/questions','site_texts','quiz_results','categories'];
         let exportObj = {};
         for(let r of refs) {
             const snap = await db.ref(r).once('value');
@@ -803,15 +1079,43 @@
     };
     
     function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => m==='&'?'&amp;':m==='<'?'&lt;':'&gt;'); }
-    function clearReportForm() { ['repTitle','repImage','repSummary','repContent'].forEach(id => document.getElementById(id).value = ''); }
-    function clearArticleForm() { ['artTitle','artCategory','artImage','artSummary','artContent','artReadTime'].forEach(id => document.getElementById(id).value = ''); }
-    function clearNewsForm() { ['newsTitle','newsImage','newsSummary','newsContent'].forEach(id => document.getElementById(id).value = ''); }
-    function clearInterForm() { ['interTitle','interSpeaker','interImage','interSummary','interContent'].forEach(id => document.getElementById(id).value = ''); }
-    function clearInvForm() { ['invTitle','invImage','invSummary','invContent'].forEach(id => document.getElementById(id).value = ''); }
-    function clearInfForm() { ['infTitle','infImage'].forEach(id => document.getElementById(id).value = ''); }
-    function clearVidForm() { ['vidTitle','vidUrl','vidDesc'].forEach(id => document.getElementById(id).value = ''); }
+    function clearReportForm() { 
+        ['repTitle','repImage','repSummary','repContent'].forEach(id => document.getElementById(id).value = '');
+        renderCategoriesCheckboxes('repCategoriesGroup');
+    }
+    function clearArticleForm() { 
+        ['artTitle','artImage','artSummary','artContent','artReadTime'].forEach(id => document.getElementById(id).value = '');
+        renderCategoriesCheckboxes('artCategoriesGroup');
+    }
+    function clearNewsForm() { 
+        ['newsTitle','newsImage','newsSummary','newsContent'].forEach(id => document.getElementById(id).value = '');
+        renderCategoriesCheckboxes('newsCategoriesGroup');
+    }
+    function clearInterForm() { 
+        ['interTitle','interSpeaker','interImage','interSummary','interContent'].forEach(id => document.getElementById(id).value = '');
+        renderCategoriesCheckboxes('interCategoriesGroup');
+    }
+    function clearInvForm() { 
+        ['invTitle','invImage','invSummary','invContent'].forEach(id => document.getElementById(id).value = '');
+        renderCategoriesCheckboxes('invCategoriesGroup');
+    }
+    function clearInfForm() { 
+        ['infTitle','infImage'].forEach(id => document.getElementById(id).value = '');
+        renderCategoriesCheckboxes('infCategoriesGroup');
+    }
+    function clearVidForm() { 
+        ['vidTitle','vidUrl','vidDesc'].forEach(id => document.getElementById(id).value = '');
+        renderCategoriesCheckboxes('vidCategoriesGroup');
+    }
     
-    showSection('reports');
+    // Initialize
+    async function init() {
+        await loadCategories();
+        await refreshAllCategoriesGroups();
+        showSection('reports');
+    }
+    
+    init();
 </script>
 </body>
 </html>
